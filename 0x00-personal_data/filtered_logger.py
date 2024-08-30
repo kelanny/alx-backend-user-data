@@ -8,6 +8,8 @@ import re
 from typing import List
 import logging
 
+PII_FIELDS = ("name", "email", "phone_number", "ssn", "password")
+
 
 class RedactingFormatter(logging.Formatter):
     """ Redacting Formatter class
@@ -47,3 +49,34 @@ def filter_datum(fields: List[str],
     """
     pattern = f"({'|'.join(fields)})=.*?(?={separator}|$)"
     return (re.sub(pattern, lambda x: f"{x.group(1)}={redaction}", message))
+
+
+def get_logger() -> logging.Logger:
+    """
+    Creates and configures a logger that handles PII fields.
+
+    Returns:
+        logging.Logger: Configured logger for user data.
+    """
+    # Create a logger named "user_data"
+    logger = logging.getLogger("user_data")
+
+    # Set the logging level to INFO (only log msgs with this level or higher)
+    logger.setLevel(logging.INFO)
+
+    # Prevent the logger from propagating messages to other loggers
+    logger.propagate = False
+
+    # Create a StreamHandler to send log messages to the console
+    stream_handler = logging.StreamHandler()
+
+    # Create an instance of RedactingFormatter, passing appropriate arguments
+    formatter = RedactingFormatter(fields=PII_FIELDS)
+
+    # Set the formatter for the StreamHandler
+    stream_handler.setFormatter(formatter)
+
+    # Add the StreamHandler to the logger
+    logger.addHandler(stream_handler)
+
+    return (logger)
