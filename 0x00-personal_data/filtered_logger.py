@@ -4,9 +4,13 @@ This module provides the filter_datum function
 to obfuscate specified fields in a log message.
 """
 
-import re
-from typing import List
+import mysql.connector
+from mysql.connector import connection
 import logging
+from typing import List
+import os
+import re
+
 
 PII_FIELDS = ("name", "email", "phone_number", "ssn", "password")
 
@@ -80,3 +84,27 @@ def get_logger() -> logging.Logger:
     logger.addHandler(stream_handler)
 
     return (logger)
+
+
+def get_db() -> connection.MySQLConnection:
+    """
+    Connects to a secure database using credentials from environment variables.
+
+    Returns:
+        connection.MySQLConnection: Database connection object.
+    """
+    # Retrieve database credentials from environment variables with defaults
+    username = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
+    password = os.getenv('PERSONAL_DATA_DB_PASSWORD', '')
+    host = os.getenv('PERSONAL_DATA_DB_HOST', 'localhost')
+    db_name = os.getenv('PERSONAL_DATA_DB_NAME')
+
+    # Create a connection to the database
+    return (
+        mysql.connector.connect(
+            user=username,
+            password=password,
+            host=host,
+            database=db_name
+        )
+    )
